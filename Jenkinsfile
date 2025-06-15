@@ -12,7 +12,7 @@ pipeline {
         stage('Test') {
             steps {
                 script {
-                    docker.image('python:3.9-slim').inside {
+                    docker.image('python:3.9-slim').inside('--user root') {
                         sh 'apt-get update && apt-get install -y chromium-driver chromium'
                         sh 'pip install -r requirements.txt'
                         sh 'python3 -m pytest test_todo_app.py --junitxml=test-results.xml --headless'
