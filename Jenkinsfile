@@ -1,7 +1,7 @@
 pipeline {
     agent any
     environment {
-        EMAIL_RECIPIENT = 'qasimalik@gmail.com'
+        EMAIL_RECIPIENT = 'qasimalik@gmail.com' // Replace with your email
     }
     stages {
         stage('Checkout') {
@@ -23,15 +23,13 @@ pipeline {
     }
     post {
         always {
-            node {
-                junit 'test-results.xml'
-                emailext (
-                    subject: "Test Results for ${env.JOB_NAME} [${env.BUILD_NUMBER}]",
-                    body: "Please find the test results attached.",
-                    to: "${EMAIL_RECIPIENT}",
-                    attachmentsPattern: 'test-results.xml'
-                )
-            }
+            junit 'test-results.xml'
+            emailext (
+                subject: "Test Results for ${env.JOB_NAME} [${env.BUILD_NUMBER}]",
+                body: "Please find the test results attached.",
+                to: "${EMAIL_RECIPIENT}",
+                attachmentsPattern: 'test-results.xml'
+            )
         }
     }
 }
