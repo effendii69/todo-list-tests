@@ -1,37 +1,37 @@
 pipeline {
     agent any
+    environment {
+        EMAIL_RECIPIENT = 'qasimalik@gmail.com'
+    }
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'master', 
-                url: 'https://github.com/effendii69/todo-list-tests.git'
+                git 'https://github.com/effendii69/todo-list-tests.git'
             }
         }
         stage('Test') {
-            agent {
-                docker {
-                    image 'python:3.9-slim'
-                    args '-u root' // Run as root to avoid permission issues
-                }
-            }
             steps {
-                sh '''
-                apt-get update && apt-get install -y python3-pip
-                pip install -r requirements.txt
-                python -m pytest --junitxml=test-results.xml
-                '''
+                script {
+                    docker.image('python:3.9-slim').inside('--user root') {
+                        sh 'apt-get update && apt-get install -y chromium-driver chromium'
+                        sh 'pip install -r requirements.txt'
+                        sh 'python3 -m pytest test_todo_app.py --junitxml=test-results.xml --headless'
+                    }
+                }
             }
         }
     }
     post {
         always {
-            junit 'test-results.xml'
-            emailext (
-                subject: "Test Results - ${currentBuild.currentResult}",
-                body: "See ${env.BUILD_URL}",
-                to: "qasimalik@gmail.com"
-            )
+            node {
+                junit 'test-results.xml'
+                emailext (
+                    subject: "Test Results for ${env.JOB_NAME} [${env.BUILD_NUMBER}]",
+                    body: "Please find the test results attached.",
+                    to: "${EMAIL_RECIPIENT}",
+                    attachmentsPattern: 'test-results.xml'
+                )
+            }
         }
     }
 }
-
